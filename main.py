@@ -137,7 +137,7 @@ Available Commands:
     print(help_text)
 
 while True:
-    action = input(f"Please enter a command or type 'help' for a list of commands. {active_directory}: ").strip()
+    action = input(f"Please enter a command or type 'help' for a list of commands. {active_directory}> ").strip()
 
     if action.lower() == "help":
         help()
