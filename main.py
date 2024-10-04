@@ -112,6 +112,7 @@ def file_molester(action, filename=None, content=None, newname=None):
 
         case "clear":
             os.system("cls")
+            return f"Terminal cleared."
 
         case _:
             return f"{RED}Invalid action specified. Please try again.{RESET}"
