@@ -2,10 +2,14 @@ import os
 import shutil
 import time
 
-# Color codes for console output
+ORANGE = ""
 RED = "\033[91m"
 GREEN = "\033[92m"
+PURPLE = "\033[95m"
 RESET = "\033[0m"
+
+req_argument = ["create", "write", "append", "rename", "copy", "delete", "size"]
+not_req_argument = ["list", "tree", "clear"]
 
 active_directory = os.getcwd()
 
@@ -26,27 +30,30 @@ def file_molester(action, filename=None, content=None, newname=None):
             if not os.path.exists(full_path):
                 with open(full_path, "w") as f:
                     f.write(content or "")
-                return f"{GREEN}File '{full_path}' created and '{content}' was written to it.{RESET}"
+                return f"{GREEN}File '{full_path}' created.{RESET}"
             return f"{RED}File '{full_path}' already exists.{RESET}"
 
         case "read":
             if os.path.exists(full_path):
                 with open(full_path, "r") as f:
-                    return f"{GREEN}{f.read()}{RESET}"
+                    return f"{PURPLE}{f.read()}{RESET}"
             return f"{RED}File '{full_path}' does not exist.{RESET}"
 
         case "write":
-            if os.path.exists(full_path):
+            if not os.path.exists(full_path):
                 with open(full_path, "w") as f:
                     f.write(content)
-                return f"{GREEN}'{content}' was written to '{full_path}'.{RESET}"
-            return f"{RED}File '{full_path}' does not exist.{RESET}"
+                return f"{GREEN}File '{full_path}' created and '{PURPLE}{content}{RESET}' was written to it.{RESET}"
+            else:
+                with open(full_path, "w") as f:
+                    f.write(content)
+                return f"{GREEN}'{PURPLE}{content}{RESET}' was written to '{full_path}'.{RESET}"
 
         case "append":
             if os.path.exists(full_path):
                 with open(full_path, 'a') as f:
                     f.write(content)
-                return f"{GREEN}'{content}' was appended to '{full_path}'.{RESET}"
+                return f"{GREEN}'{PURPLE}{content}{RESET}' was appended to '{full_path}'.{RESET}"
             return f"{RED}File '{full_path}' does not exist.{RESET}"
 
         case "delete":
@@ -103,6 +110,9 @@ def file_molester(action, filename=None, content=None, newname=None):
             else:
                 return f"No files or directories found in '{active_directory}'."
 
+        case "clear":
+            os.system("cls")
+
         case _:
             return f"{RED}Invalid action specified. Please try again.{RESET}"
 
@@ -119,7 +129,9 @@ Available Commands:
 8. size <filename> - Displays the size of the specified file in bytes.
 9. slide-to <directory> - Sets the active directory for file operations.
 10. list - Lists all files in the active directory.
-11. help - Displays this help message.
+11. tree - Displays a tree-like structure of the active directory.
+12. clear - Clears the terminal.
+13. help - Displays this help message.
 """
     print(help_text)
 
@@ -138,13 +150,8 @@ while True:
 
     action = args[0].lower()
 
-    if action == "list":
-        result = file_molester("list")
-        print(result)
-        continue
-
-    if action == "tree":
-        result = file_molester("tree")
+    if action in not_req_argument:
+        result = file_molester(action)
         print(result)
         continue
 
@@ -157,25 +164,29 @@ while True:
         print(result)
         continue
 
-    if len(args) < 2 and action not in ["list", "tree", "slide-to"]:
-        print(f"{RED}Commands need an action and a filename.{RESET}")
-        continue
-
-    filename = args[1]
-    content = None
-    newname = None
-
-    if action in ["create", "write", "append"]:
-        if len(args) < 3:
-            print(f"{RED}You must enter content to {action}.{RESET}")
+    if action in req_argument:
+        if len(args) < 2:
+            print(f"{RED}Commands need an action and a filename.{RESET}")
             continue
-        content = " ".join(args[2:]).replace("\\n", "\n")
 
-    elif action in ["rename", "copy"]:
-        if len(args) < 3:
-            print(f"{RED}You must enter a new name for {action}.{RESET}")
-            continue
-        newname = args[2]
+        filename = args[1]
+        content = None
+        newname = None
 
-    result = file_molester(action, filename, content, newname)
-    print(result)
+        if action in ["create", "write", "append"]:
+            if len(args) < 3:
+                print(f"{RED}You must enter content to {action}.{RESET}")
+                continue
+            content = " ".join(args[2:]).replace("\\n", "\n")
+
+        elif action in ["rename", "copy"]:
+            if len(args) < 3:
+                print(f"{RED}You must enter a new name for {action}.{RESET}")
+                continue
+            newname = args[2]
+
+        result = file_molester(action, filename, content, newname)
+        print(result)
+
+    else:
+        print(f"{RED}Invalid action specified. Please try again.{RESET}")
