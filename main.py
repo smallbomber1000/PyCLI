@@ -9,7 +9,7 @@ PURPLE = "\033[95m"
 YELLOW = "\033[93m"
 RESET = "\033[0m"
 
-req_argument = ["create-file", "read-file", "write-file", "append-file", "rename-file", "copy-file", "delete-file", "size-file", "make-folder", "delete-folder", "rename-folder", "copy-folder", "size-folder"] # list of commands that require additional arguments
+req_argument = ["create-file", "read-file", "write-file", "append-file", "rename-file", "copy-file", "delete-file", "size-file", "make-folder", "delete-folder", "rename-folder", "copy-folder", "size-folder", "calculate", "calc"] # list of commands that require additional arguments
 not_req_argument = ["list", "tree", "clear", "cat", "process-list"] # list of commands that don't require additional arguments
 
 cat_art = f"""      ██            ██                        
@@ -41,9 +41,9 @@ def set_active_directory(directory): # used in slide-to to move directory
         return f"{GREEN}Active directory set to: {active_directory}{RESET}"
     return f"{RED}The directory '{directory}' does not exist.{RESET}"
 
-def command_switch_case(action, filename=None, content=None, newname=None): # main switch case with =None for when the argument isn't passed
-    full_path = os.path.join(active_directory, filename) if filename else None # defines the full_path to avoid permission errors
-    new_full_path = os.path.join(active_directory, newname) if newname else None # converts the newname that is passed to a full path to the file
+def command_switch_case(action, item_name=None, data=None, new_item_name=None): # main switch case with =None for when the argument isn't passed
+    full_path = os.path.join(active_directory, item_name) if item_name else None # defines the full_path to avoid permission errors
+    new_full_path = os.path.join(active_directory, new_item_name) if new_item_name else None # converts the new_item_name that is passed to a full path to the file
 
     match action:
 
@@ -51,7 +51,7 @@ def command_switch_case(action, filename=None, content=None, newname=None): # ma
         case "create-file":
             if not os.path.exists(full_path): # checks to make sure the file they're creating doesn't already exist to avoid overwrite
                 with open(full_path, "w") as f:
-                    f.write(content or "")
+                    f.write(data or "")
                 return f"{GREEN}File '{full_path}' created.{RESET}"
             return f"{RED }File '{full_path}' already exists.{RESET}"
 
@@ -64,18 +64,18 @@ def command_switch_case(action, filename=None, content=None, newname=None): # ma
         case "write-file":
             if not os.path.exists(full_path): # checks to make sure the file they're writing to doesn't already exist and then making a new file
                 with open(full_path, "w") as f:
-                    f.write(content)
-                return f"{GREEN}File '{full_path}' created and '{PURPLE}{content}{RESET}' was written to it.{RESET}"
-            else: # if it does exist it just overwrites the content
+                    f.write(data)
+                return f"{GREEN}File '{full_path}' created and '{PURPLE}{data}{RESET}' was written to it.{RESET}"
+            else: # if it does exist it just overwrites the data
                 with open(full_path, "w") as f:
-                    f.write(content)
-                return f"{GREEN}'{PURPLE}{content}{RESET}' was written to '{full_path}'.{RESET}"
+                    f.write(data)
+                return f"{GREEN}'{PURPLE}{data}{RESET}' was written to '{full_path}'.{RESET}"
 
         case "append-file":
             if os.path.exists(full_path): # checks if the file exists
                 with open(full_path, 'a') as f:
-                    f.write(content) # writes content to it
-                return f"{GREEN}'{PURPLE}{content}{RESET}' was appended to '{full_path}'.{RESET}"
+                    f.write(data) # writes data to it
+                return f"{GREEN}'{PURPLE}{data}{RESET}' was appended to '{full_path}'.{RESET}"
             return f"{RED}File '{full_path}' does not exist.{RESET}"
 
         case "delete-file":
@@ -117,9 +117,9 @@ def command_switch_case(action, filename=None, content=None, newname=None): # ma
 
                         try:
                             if os.path.isdir(full_path): # checks if the file listed is actually a folder
-                                for dirpath, dirnames, filenames in os.walk(full_path):
-                                    for filename in filenames:
-                                        file_path = os.path.join(dirpath, filename)
+                                for dirpath, dirnames, item_names in os.walk(full_path):
+                                    for item_name in item_names:
+                                        file_path = os.path.join(dirpath, item_name)
                                         try:
                                             total_size += os.path.getsize(file_path) # add the size of the file to the total size of the folder
                                         except PermissionError: # skips it if there is a permission error
@@ -161,7 +161,7 @@ def command_switch_case(action, filename=None, content=None, newname=None): # ma
 
         # folder operations
         case "make-folder":
-            folder_path = os.path.join(active_directory, filename) # makes the full folder path
+            folder_path = os.path.join(active_directory, item_name) # makes the full folder path
             if not os.path.exists(folder_path): # check if it doesn't already exist
                 os.makedirs(folder_path)
                 return f"{GREEN}The directory '{folder_path}' was created.{RESET}"
@@ -169,7 +169,7 @@ def command_switch_case(action, filename=None, content=None, newname=None): # ma
                 return f"{RED}The directory '{folder_path}' already exists.{RESET}"
 
         case "delete-folder":
-            folder_path = os.path.join(active_directory, filename) # makes the full folder path
+            folder_path = os.path.join(active_directory, item_name) # makes the full folder path
             if os.path.exists(folder_path): # if it exists then delete it
                 shutil.rmtree(folder_path)
                 return f"{GREEN}The directory '{folder_path}' was deleted.{RESET}"
@@ -177,23 +177,23 @@ def command_switch_case(action, filename=None, content=None, newname=None): # ma
                 return f"{RED}The directory '{folder_path}' does not exist.{RESET}"
 
         case "rename-folder":
-            folder_path = os.path.join(active_directory, filename) # makes the full folder path
-            new_folder_path = os.path.join(active_directory, newname) # makes the full path for the new folder name
+            folder_path = os.path.join(active_directory, item_name) # makes the full folder path
+            new_folder_path = os.path.join(active_directory, new_item_name) # makes the full path for the new folder name
             if os.path.exists(folder_path): # if the folder exists then rename it
                 os.rename(folder_path, new_folder_path)
-                return f"{GREEN}The directory '{filename}' was renamed to '{newname}'.{RESET}"
+                return f"{GREEN}The directory '{item_name}' was renamed to '{new_item_name}'.{RESET}"
             else:
                 return f"{RED} The directory '{folder_path}' does not exist.{RESET}"
 
         case "copy-folder":
-            folder_path = os.path.join(active_directory, filename) # makes the full folder path
-            new_folder_path = os.path.join(active_directory, newname) # makes the full folder with with the new folder name
+            folder_path = os.path.join(active_directory, item_name) # makes the full folder path
+            new_folder_path = os.path.join(active_directory, new_item_name) # makes the full folder with with the new folder name
             if os.path.exists(folder_path): # if the folder exists then copy it
                 if not os.path.exists(new_folder_path):
                     shutil.copytree(folder_path, new_folder_path)
                     return f"{GREEN}The directory '{folder_path}' was copied to '{new_folder_path}'.{RESET}"
                 else:
-                    return f"{RED}The directory '{new_folder_path}' already exists.{RESET}" # error for if the newname passed already exists
+                    return f"{RED}The directory '{new_folder_path}' already exists.{RESET}" # error for if the new_item_name passed already exists
             else:
                 return f"{RED}The directory '{folder_path}' does not exist.{RESET}"
 
@@ -203,9 +203,9 @@ def command_switch_case(action, filename=None, content=None, newname=None): # ma
                 return f"{RED}The directory '{folder_path}' does not exist.{RESET}"
 
             total_size = 0
-            for dirpath, dirnames, filenames in os.walk(folder_path): # go through the folder
-                for filename in filenames:
-                    file_path = os.path.join(dirpath, filename)
+            for dirpath, dirnames, item_names in os.walk(folder_path): # go through the folder
+                for item_name in item_names:
+                    file_path = os.path.join(dirpath, item_name)
                     total_size += os.path.getsize(file_path) # add each file to the total size
 
             folder_name = os.path.basename(folder_path)
@@ -229,6 +229,13 @@ def command_switch_case(action, filename=None, content=None, newname=None): # ma
 
             return ""
         
+        case "calculate" | "calc":
+            try:
+                answer = eval(item_name) # do whatever sum was passed through
+                return f"{GREEN}{answer}{RESET}"
+            except:
+                return f"{RED}Invalid input.{RESET}" # return this if the sum was invalid
+        
         case "process-list":
             processes = os.popen('tasklist').readlines() # get a list of all the processes
             process_list = [proc.strip() for proc in processes] # add them to a list
@@ -247,14 +254,14 @@ def command_help():
 Available Commands:
 
 File Operations:
-1. create-file <filename> <content> - Creates a new file and writes content to it.
-2. read-file <filename> - Reads and displays the content of the specified file.
-3. write-file <filename> <content> - Writes content to the specified file (overwrites existing content).
-4. append-file <filename> <content> - Appends content to the specified file.
-5. delete-file <filename> - Deletes the specified file.
-6. rename-file <filename> <new_filename> - Renames a specified file to a new filename.
-7. copy-file <filename> <new_filename> - Copies the specified file to a new filename.
-8. size-file <filename> - Displays the size of the specified file in bytes.
+1. create-file <item_name> <data> - Creates a new file and writes data to it.
+2. read-file <item_name> - Reads and displays the data of the specified file.
+3. write-file <item_name> <data> - Writes data to the specified file (overwrites existing data).
+4. append-file <item_name> <data> - Appends data to the specified file.
+5. delete-file <item_name> - Deletes the specified file.
+6. rename-file <item_name> <new_item_name> - Renames a specified file to a new item_name.
+7. copy-file <item_name> <new_item_name> - Copies the specified file to a new item_name.
+8. size-file <item_name> - Displays the size of the specified file in bytes.
 
 Directory Operations:
 1. make-folder <foldername> - Creates a new folder in the active directory.
@@ -274,6 +281,8 @@ Miscellaneous:
 2. help - Displays this help message.
 3. cat - Displays a cat.
 4. info - Displays info about this program.
+5. calculate <equation> or calc <equation> - Displays the result of the equation.
+6. pc-info
 \033[0m""" # list of all the commands
     print(help_text) # prints the list out
 
@@ -328,26 +337,26 @@ while True:
 
     if action in req_argument: # checks if it's a command that requires additional arguments
         if len(args) < 2: # checks if there are only 2 arguments
-            print(f"{RED}Commands need an action and a filename.{RESET}")
+            print(f"{RED}Commands need an action and a item_name.{RESET}")
             continue
 
-        filename = args[1] # sets the second argument to be filename
-        content = None
-        newname = None
+        item_name = args[1] # sets the second argument to be item_name
+        data = None
+        new_item_name = None
 
-        if action in ["create-file", "write-file", "append-file"]: # checks if it's an action that requires content to be passed
+        if action in ["create-file", "write-file", "append-file"]: # checks if it's an action that requires data to be passed
             if len(args) < 3:
-                print(f"{RED}You must enter content to {action}.{RESET}")
+                print(f"{RED}You must enter data to {action}.{RESET}")
                 continue
-            content = " ".join(args[2:]).replace("\\n", "\n")
+            data = " ".join(args[2:]).replace("\\n", "\n")
 
         elif action in ["rename-file", "copy-file", "rename-folder", "copy-folder"]: # checks if it's an action that requires a new name
             if len(args) < 3:
                 print(f"{RED}You must enter a new name for {action}.{RESET}")
                 continue
-            newname = args[2]
+            new_item_name = args[2]
 
-        result = command_switch_case(action, filename, content, newname) # fire the switch case with the relevant argument
+        result = command_switch_case(action, item_name, data, new_item_name) # fire the switch case with the relevant argument
         print(result)
 
     else:
