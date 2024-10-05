@@ -8,7 +8,7 @@ GREEN = "\033[92m"
 PURPLE = "\033[95m"
 RESET = "\033[0m"
 
-req_argument = ["create", "write", "append", "rename", "copy", "delete", "size"]
+req_argument = ["create-file", "read-file", "write-file", "append-file", "rename-file", "copy-file", "delete-file", "size-file", "make-folder", "delete-folder", "rename-folder", "copy-folder"]
 not_req_argument = ["list", "tree", "clear"]
 
 active_directory = os.getcwd()
@@ -26,20 +26,22 @@ def file_molester(action, filename=None, content=None, newname=None):
     new_full_path = os.path.join(active_directory, newname) if newname else None
 
     match action:
-        case "create":
+
+        # FILE OPERATIONS
+        case "create-file":
             if not os.path.exists(full_path):
                 with open(full_path, "w") as f:
                     f.write(content or "")
                 return f"{GREEN}File '{full_path}' created.{RESET}"
             return f"{RED}File '{full_path}' already exists.{RESET}"
 
-        case "read":
+        case "read-file":
             if os.path.exists(full_path):
                 with open(full_path, "r") as f:
                     return f"{PURPLE}{f.read()}{RESET}"
             return f"{RED}File '{full_path}' does not exist.{RESET}"
 
-        case "write":
+        case "write-file":
             if not os.path.exists(full_path):
                 with open(full_path, "w") as f:
                     f.write(content)
@@ -49,35 +51,37 @@ def file_molester(action, filename=None, content=None, newname=None):
                     f.write(content)
                 return f"{GREEN}'{PURPLE}{content}{RESET}' was written to '{full_path}'.{RESET}"
 
-        case "append":
+        case "append-file":
             if os.path.exists(full_path):
                 with open(full_path, 'a') as f:
                     f.write(content)
                 return f"{GREEN}'{PURPLE}{content}{RESET}' was appended to '{full_path}'.{RESET}"
             return f"{RED}File '{full_path}' does not exist.{RESET}"
 
-        case "delete":
+        case "delete-file":
             if os.path.exists(full_path):
                 os.remove(full_path)
                 return f"{GREEN}File '{full_path}' was deleted.{RESET}"
             return f"{RED}File '{full_path}' does not exist.{RESET}"
 
-        case "rename":
+        case "rename-file":
             if os.path.exists(full_path):
                 os.rename(full_path, new_full_path)
                 return f"{GREEN}File '{full_path}' was renamed to '{new_full_path}'.{RESET}"
             return f"{RED}File '{full_path}' does not exist.{RESET}"
 
-        case "copy":
+        case "copy-file":
             if os.path.exists(full_path):
                 shutil.copy(full_path, new_full_path)
                 return f"{GREEN}File '{full_path}' was copied to '{new_full_path}'.{RESET}"
             return f"{RED}File '{full_path}' does not exist.{RESET}"
 
-        case "size":
+        case "size-file":
             if os.path.exists(full_path):
                 return f"{GREEN}File '{full_path}' size: {os.path.getsize(full_path)} bytes.{RESET}"
             return f"{RED}File '{full_path}' does not exist.{RESET}"
+
+        # DIRECTORY LISTING OPERATIONS
 
         case "list":
             files = os.listdir(active_directory)
@@ -109,38 +113,92 @@ def file_molester(action, filename=None, content=None, newname=None):
                 return "\n".join(directory_tree)
             else:
                 return f"No files or directories found in '{active_directory}'."
+        
+        # FOLDER OPERATIONS
+
+        case "make-folder":
+            folder_path = os.path.join(active_directory, filename)
+            if not os.path.exists(folder_path):
+                os.makedirs(folder_path)
+                return f"{GREEN}The directory '{folder_path}' was created.{RESET}"
+            else:
+                return f"{RED}The directory '{folder_path}' already exists.{RESET}"
+
+        case "delete-folder":
+            folder_path = os.path.join(active_directory, filename)
+            if os.path.exists(folder_path):
+                shutil.rmtree(folder_path)
+                return f"{GREEN}The directory '{folder_path}' was deleted.{RESET}"
+            else:
+                return f"{RED}The directory '{folder_path}' does not exist.{RESET}"
+
+        case "rename-folder":
+            folder_path = os.path.join(active_directory, filename)
+            new_folder_path = os.path.join(active_directory, newname)
+            if os.path.exists(folder_path):
+                os.rename(folder_path, new_folder_path)
+                return f"{GREEN}The directory '{filename}' was renamed to '{newname}'.{RESET}"
+            else:
+                return f"{RED} The directory '{folder_path}' does not exist.{RESET}"
+
+        case "copy-folder":
+            folder_path = os.path.join(active_directory, filename)
+            new_folder_path = os.path.join(active_directory, newname)
+            if os.path.exists(folder_path):
+                if not os.path.exists(new_folder_path):
+                    shutil.copytree(folder_path, new_folder_path)
+                    return f"{GREEN}The directory '{folder_path}' was copied to '{new_folder_path}'.{RESET}"
+                else:
+                    return f"{RED}The directory '{new_folder_path}' already exists.{RESET}"
+            else:
+                return f"{RED}The directory '{folder_path}' does not exist.{RESET}"
+
+        # OTHER OPERATIONS
 
         case "clear":
             os.system("cls")
             return f"Terminal cleared."
 
+        # DEFAULT OPERATION
+
         case _:
             return f"{RED}Invalid action specified. Please try again.{RESET}"
 
-def help():
+def command_help():
     help_text = """
 Available Commands:
-1. create <filename> <content> - Creates a new file and writes content to it.
-2. read <filename> - Reads and displays the content of the specified file.
-3. write <filename> <content> - Writes content to the specified file (overwrites existing content).
-4. append <filename> <content> - Appends content to the specified file.
-5. delete <filename> - Deletes the specified file.
-6. rename <filename> <new_filename> - Renames a specified file to a new filename.
-7. copy <filename> <new_filename> - Copies the specified file to a new filename.
-8. size <filename> - Displays the size of the specified file in bytes.
-9. slide-to <directory> - Sets the active directory for file operations.
-10. list - Lists all files in the active directory.
-11. tree - Displays a tree-like structure of the active directory.
-12. clear - Clears the terminal.
-13. help - Displays this help message.
+
+File Operations:
+1. create-file <filename> <content> - Creates a new file and writes content to it.
+2. read-file <filename> - Reads and displays the content of the specified file.
+3. write-file <filename> <content> - Writes content to the specified file (overwrites existing content).
+4. append-file <filename> <content> - Appends content to the specified file.
+5. delete-file <filename> - Deletes the specified file.
+6. rename-file <filename> <new_filename> - Renames a specified file to a new filename.
+7. copy-file <filename> <new_filename> - Copies the specified file to a new filename.
+8. size-file <filename> - Displays the size of the specified file in bytes.
+
+Directory Operations:
+1. make-folder <foldername> - Creates a new folder in the active directory.
+2. slide-to <directory> - Sets the active directory for file operations.
+3. list - Lists all files in the active directory.
+4. tree - Displays a tree-like structure of the active directory.
+
+Miscellaneous:
+1. clear - Clears the terminal.
+2. help - Displays this help message.
 """
     print(help_text)
 
 while True:
-    action = input(f"Please enter a command or type 'help' for a list of commands. {active_directory}> ").strip()
+    action = input(f"Please enter a command or type 'help' for a list of commands. {active_directory}: ").strip()
+
+    if action.lower() == "exit":
+        print("Exiting...")
+        break
 
     if action.lower() == "help":
-        help()
+        command_help()
         continue
 
     args = action.split()
@@ -174,13 +232,13 @@ while True:
         content = None
         newname = None
 
-        if action in ["create", "write", "append"]:
+        if action in ["create-file", "write-file", "append-file"]:
             if len(args) < 3:
                 print(f"{RED}You must enter content to {action}.{RESET}")
                 continue
             content = " ".join(args[2:]).replace("\\n", "\n")
 
-        elif action in ["rename", "copy"]:
+        elif action in ["rename-file", "copy-file", "rename-folder", "copy-folder"]:
             if len(args) < 3:
                 print(f"{RED}You must enter a new name for {action}.{RESET}")
                 continue
