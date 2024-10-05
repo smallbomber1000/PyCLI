@@ -8,7 +8,7 @@ GREEN = "\033[92m"
 PURPLE = "\033[95m"
 RESET = "\033[0m"
 
-req_argument = ["create-file", "read-file", "write-file", "append-file", "rename-file", "copy-file", "delete-file", "size-file", "make-folder", "delete-folder", "rename-folder", "copy-folder"]
+req_argument = ["create-file", "read-file", "write-file", "append-file", "rename-file", "copy-file", "delete-file", "size-file", "make-folder", "delete-folder", "rename-folder", "copy-folder", "size-folder"]
 not_req_argument = ["list", "tree", "clear"]
 
 active_directory = os.getcwd()
@@ -82,40 +82,65 @@ def file_molester(action, filename=None, content=None, newname=None):
             return f"{RED}File '{full_path}' does not exist.{RESET}"
 
         # DIRECTORY LISTING OPERATIONS
-
         case "list":
-            files = os.listdir(active_directory)
-            if files:
-                header = f"{'File Name'.ljust(30)} {'Size (bytes)'.rjust(15)} {'Last Modified'.rjust(25)}"
-                separator = "-" * 70
-                file_details = [
-                    f"{file.ljust(30)} {str(os.path.getsize(os.path.join(active_directory, file))).rjust(15)} {time.ctime(os.path.getmtime(os.path.join(active_directory, file))).rjust(25)}"
-                    for file in files
-                ]
-                return f"{header}\n{separator}\n" + "\n".join(file_details)
-            return f"No files found in '{active_directory}'."
+            try:
+                files = os.listdir(active_directory)
+                if files:
+                    header = f"{'File Name'.ljust(30)} {'Size (bytes)'.rjust(15)} {'Last Modified'.rjust(25)}"
+                    separator = "-" * 70
+                    file_details = []
+
+                    for file in files:
+                        full_path = os.path.join(active_directory, file)
+                        total_size = 0
+                        last_modified = ""
+
+                        try:
+                            if os.path.isdir(full_path):
+                                # Calculate the total size of the folder
+                                for dirpath, dirnames, filenames in os.walk(full_path):
+                                    for filename in filenames:
+                                        file_path = os.path.join(dirpath, filename)
+                                        try:
+                                            total_size += os.path.getsize(file_path)
+                                        except PermissionError:
+                                            continue  # Ignore files without permission
+                                        except Exception as e:
+                                            print(f"{RED}Error accessing file {file_path}: {str(e)}.{RESET}")
+                                            continue
+                            else:
+                                total_size = os.path.getsize(full_path)
+
+                            last_modified = time.ctime(os.path.getmtime(full_path))
+                            file_details.append(f"{file.ljust(30)} {str(total_size).rjust(15)} {last_modified.rjust(25)}")
+                        except PermissionError:
+                            file_details.append(f"{file.ljust(30)} {'N/A'.rjust(15)} {'Permission Denied'.rjust(25)}")
+                        except Exception as e:
+                            file_details.append(f"{file.ljust(30)} {'N/A'.rjust(15)} {'Error: ' + str(e)}".rjust(25))
+
+                    return f"{PURPLE}{header}\n{separator}\n" + "\n".join(file_details) + f"{RESET}"
+                else:
+                    return f"{PURPLE}No files found in '{active_directory}'.{RESET}"
+            except Exception as e:
+                return f"{RED}Error accessing the directory: {str(e)}.{RESET}"
 
         case "tree":
-            if not os.path.exists(active_directory):
-                return f"{RED}The directory '{active_directory}' does not exist.{RESET}"
-
             directory_tree = []
             for root, dirs, files in os.walk(active_directory):
                 level = root.replace(active_directory, "").count(os.sep)
                 indent = " " * 4 * level
                 directory_tree.append(f"{indent}{os.path.basename(root)}/")
-                
+
                 sub_indent = " " * 4 * (level + 1)
                 for file in files:
                     directory_tree.append(f"{sub_indent}{file}")
 
             if directory_tree:
-                return "\n".join(directory_tree)
+                return f"{PURPLE}\n".join(directory_tree) + f"{RESET}"
             else:
-                return f"No files or directories found in '{active_directory}'."
-        
-        # FOLDER OPERATIONS
+                return f"{PURPLE}No files or directories found in '{active_directory}'.{RESET}"
 
+        # FOLDER OPERATIONS
         case "make-folder":
             folder_path = os.path.join(active_directory, filename)
             if not os.path.exists(folder_path):
@@ -153,14 +178,26 @@ def file_molester(action, filename=None, content=None, newname=None):
             else:
                 return f"{RED}The directory '{folder_path}' does not exist.{RESET}"
 
-        # OTHER OPERATIONS
+        case "size-folder":
+            folder_path = os.path.join(active_directory, " ".join(args[1:]))
+            if not os.path.exists(folder_path):
+                return f"{RED}The directory '{folder_path}' does not exist.{RESET}"
 
+            total_size = 0
+            for dirpath, dirnames, filenames in os.walk(folder_path):
+                for filename in filenames:
+                    file_path = os.path.join(dirpath, filename)
+                    total_size += os.path.getsize(file_path)
+
+            folder_name = os.path.basename(folder_path)
+            return f"{GREEN}The total size of '{folder_name}' is {total_size} bytes.{RESET}"
+
+        # OTHER OPERATIONS
         case "clear":
             os.system("cls")
             return f"Terminal cleared."
 
         # DEFAULT OPERATION
-
         case _:
             return f"{RED}Invalid action specified. Please try again.{RESET}"
 
@@ -180,9 +217,13 @@ File Operations:
 
 Directory Operations:
 1. make-folder <foldername> - Creates a new folder in the active directory.
-2. slide-to <directory> - Sets the active directory for file operations.
-3. list - Lists all files in the active directory.
-4. tree - Displays a tree-like structure of the active directory.
+2. delete-folder <foldername> - Deletes the specified folder from the active directory.
+3. rename-folder <foldername> <new_foldername> - Renames the specified folder to a new name.
+4. copy-folder <foldername> <new_foldername> - Copies the specified folder to a new folder name.
+5. size-folder <foldername> - Displays the size of the specified folder in bytes.
+6. slide-to <directory> - Sets the active directory for file operations.
+7. list - Lists all files in the active directory.
+8. tree - Displays a tree-like structure of the active directory.
 
 Miscellaneous:
 1. clear - Clears the terminal.
@@ -191,7 +232,7 @@ Miscellaneous:
     print(help_text)
 
 while True:
-    action = input(f"Please enter a command or type 'help' for a list of commands. {active_directory}: ").strip()
+    action = input(f"Please enter a command or type 'help' for a list of commands. {active_directory}> ").strip()
 
     if action.lower() == "exit":
         print("Exiting...")
