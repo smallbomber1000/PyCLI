@@ -9,7 +9,26 @@ PURPLE = "\033[95m"
 RESET = "\033[0m"
 
 req_argument = ["create-file", "read-file", "write-file", "append-file", "rename-file", "copy-file", "delete-file", "size-file", "make-folder", "delete-folder", "rename-folder", "copy-folder", "size-folder"]
-not_req_argument = ["list", "tree", "clear"]
+not_req_argument = ["list", "tree", "clear", "cat"]
+
+cat_art = f"""      ██            ██                        
+    ██░░██        ██░░██                      
+    ██░░▒▒████████▒▒░░██                ████  
+  ██▒▒░░░░▒▒▒▒░░▒▒░░░░▒▒██            ██░░░░██
+  ██░░░░░░░░░░░░░░░░░░░░██            ██  ░░██
+██▒▒░░░░░░░░░░░░░░░░░░░░▒▒████████      ██▒▒██
+██░░  ██  ░░██░░  ██  ░░  ▒▒  ▒▒  ██    ██░░██
+██░░░░░░░░██░░██░░░░░░░░░░▒▒░░▒▒░░░░██████▒▒██
+██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██░░██  
+██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██░░██  
+██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██    
+██▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██    
+██▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██    
+██▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▒██    
+  ██▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▒██      
+    ██▒▒░░▒▒▒▒░░▒▒░░░░░░▒▒░░▒▒▒▒░░▒▒██        
+      ██░░████░░██████████░░████░░██          
+      ██▓▓░░  ▓▓██░░  ░░██▓▓  ░░▓▓██{RESET}"""
 
 active_directory = os.getcwd()
 
@@ -97,14 +116,13 @@ def file_molester(action, filename=None, content=None, newname=None):
 
                         try:
                             if os.path.isdir(full_path):
-                                # Calculate the total size of the folder
                                 for dirpath, dirnames, filenames in os.walk(full_path):
                                     for filename in filenames:
                                         file_path = os.path.join(dirpath, filename)
                                         try:
                                             total_size += os.path.getsize(file_path)
                                         except PermissionError:
-                                            continue  # Ignore files without permission
+                                            continue
                                         except Exception as e:
                                             print(f"{RED}Error accessing file {file_path}: {str(e)}.{RESET}")
                                             continue
@@ -197,6 +215,20 @@ def file_molester(action, filename=None, content=None, newname=None):
             os.system("cls")
             return f"Terminal cleared."
 
+        case "cat":
+            colors = [GREEN, RED, PURPLE]
+            color_index = 0
+
+            while True:
+                os.system('cls' if os.name == 'nt' else 'clear')
+                current_color = colors[color_index]
+                print(f"{current_color}{cat_art}{RESET}")
+                color_index = (color_index + 1) % len(colors)
+                time.sleep(0.5)
+
+            return ""
+
+
         # DEFAULT OPERATION
         case _:
             return f"{RED}Invalid action specified. Please try again.{RESET}"
@@ -228,6 +260,7 @@ Directory Operations:
 Miscellaneous:
 1. clear - Clears the terminal.
 2. help - Displays this help message.
+3. cat - Displays a cat.
 """
     print(help_text)
 
