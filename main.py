@@ -6,10 +6,11 @@ ORANGE = "" # colours
 RED = "\033[91m"
 GREEN = "\033[92m"
 PURPLE = "\033[95m"
+YELLOW = "\033[93m"
 RESET = "\033[0m"
 
 req_argument = ["create-file", "read-file", "write-file", "append-file", "rename-file", "copy-file", "delete-file", "size-file", "make-folder", "delete-folder", "rename-folder", "copy-folder", "size-folder"] # list of commands that require additional arguments
-not_req_argument = ["list", "tree", "clear", "cat"] # list of commands that don't require additional arguments
+not_req_argument = ["list", "tree", "clear", "cat", "process-list"] # list of commands that don't require additional arguments
 
 cat_art = f"""      ██            ██                        
     ██░░██        ██░░██                      
@@ -216,7 +217,7 @@ def command_switch_case(action, filename=None, content=None, newname=None): # ma
             return f"Terminal cleared."
 
         case "cat":
-            colors = [GREEN, RED, PURPLE] # list of the colours (defined at the top of this script)
+            colors = [GREEN, RED, PURPLE, YELLOW] # list of the colours (defined at the top of this script)
             color_index = 0
 
             while True:
@@ -227,13 +228,22 @@ def command_switch_case(action, filename=None, content=None, newname=None): # ma
                 time.sleep(0.5)
 
             return ""
+        
+        case "process-list":
+            processes = os.popen('tasklist').readlines() # get a list of all the processes
+            process_list = [proc.strip() for proc in processes] # add them to a list
+            output = "\n".join(process_list)  # join all the processes in the list together
+            if output:
+                return f"{GREEN}Here is the list of processes currently running:\n{PURPLE}{output}{RESET}"
+            else:
+                return f"{RED}Failed to get a list of the processes running.{RESET}"
 
         # default operation
         case _:
             return f"{RED}Invalid action specified. Please try again.{RESET}"
 
 def command_help():
-    help_text = """
+    help_text = """\033[93m
 Available Commands:
 
 File Operations:
@@ -256,12 +266,28 @@ Directory Operations:
 7. list - Lists all files in the active directory.
 8. tree - Displays a tree-like structure of the active directory.
 
+Task-Based Operations:
+1. process-list - Displays a list of the processes currently running on the computer.
+
 Miscellaneous:
 1. clear - Clears the terminal.
 2. help - Displays this help message.
 3. cat - Displays a cat.
-""" # list of all the commands
+4. info - Displays info about this program.
+\033[0m""" # list of all the commands
     print(help_text) # prints the list out
+
+def info():
+    info_text = """
+    Colours used are:
+    \033[91m "033[91m" - Red
+    \033[92m "033[92m" - Green
+    \033[95m "033[95m" - Purple
+    \033[93m "033[93m" - Yellow
+
+    \033[0m Created by Sam Byrom
+    """ # info
+    print(info_text)
 
 while True:
     action = input(f"Please enter a command or type 'help' for a list of commands. {active_directory}> ").strip() # asks you to enter the command
@@ -272,6 +298,10 @@ while True:
 
     if action.lower() == "help": # check if it's the help command
         command_help()
+        continue
+
+    if action.lower() == "info": # check if it's the info command
+        info()
         continue
 
     args = action.split() # splits all the arguments up
