@@ -1,15 +1,15 @@
-import os
+import os # IMPORTS
 import shutil
 import time
 
-ORANGE = ""
+ORANGE = "" # COLOURS
 RED = "\033[91m"
 GREEN = "\033[92m"
 PURPLE = "\033[95m"
 RESET = "\033[0m"
 
-req_argument = ["create-file", "read-file", "write-file", "append-file", "rename-file", "copy-file", "delete-file", "size-file", "make-folder", "delete-folder", "rename-folder", "copy-folder", "size-folder"]
-not_req_argument = ["list", "tree", "clear", "cat"]
+req_argument = ["create-file", "read-file", "write-file", "append-file", "rename-file", "copy-file", "delete-file", "size-file", "make-folder", "delete-folder", "rename-folder", "copy-folder", "size-folder"] # LIST OF COMMANDS THAT REQUIRE ADDITIONAL ARGUMENTS
+not_req_argument = ["list", "tree", "clear", "cat"] # LIST OF COMMANDS THAT DON'T REQUIRE ADDITIONAL ARGUEMENTS
 
 cat_art = f"""      ██            ██                        
     ██░░██        ██░░██                      
@@ -28,19 +28,19 @@ cat_art = f"""      ██            ██
   ██▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▒██      
     ██▒▒░░▒▒▒▒░░▒▒░░░░░░▒▒░░▒▒▒▒░░▒▒██        
       ██░░████░░██████████░░████░░██          
-      ██▓▓░░  ▓▓██░░  ░░██▓▓  ░░▓▓██{RESET}"""
+      ██▓▓░░  ▓▓██░░  ░░██▓▓  ░░▓▓██{RESET}""" # CAT PICTURE
 
-active_directory = os.getcwd()
+active_directory = os.getcwd() # GET ACTIVE DIRECTORY
 
-def set_active_directory(directory):
+def set_active_directory(directory): # USED IN slide-to TO MOVE DIRECTORY
     global active_directory
-    new_directory = os.path.join(active_directory, directory)
+    new_directory = os.path.join(active_directory, directory) # JOIN ACTIVE DIRECTORY TO THE NEW ONE
     if os.path.isdir(new_directory):
-        active_directory = os.path.abspath(new_directory)
+        active_directory = os.path.abspath(new_directory) # MAKES IT ABSOLUTELY SERIOUS
         return f"{GREEN}Active directory set to: {active_directory}{RESET}"
     return f"{RED}The directory '{directory}' does not exist.{RESET}"
 
-def file_molester(action, filename=None, content=None, newname=None):
+def command_switch_case(action, filename=None, content=None, newname=None): # MAIN SWITCH CASE
     full_path = os.path.join(active_directory, filename) if filename else None
     new_full_path = os.path.join(active_directory, newname) if newname else None
 
@@ -284,7 +284,7 @@ while True:
     action = args[0].lower()
 
     if action in not_req_argument:
-        result = file_molester(action)
+        result = command_switch_case(action)
         print(result)
         continue
 
@@ -318,7 +318,7 @@ while True:
                 continue
             newname = args[2]
 
-        result = file_molester(action, filename, content, newname)
+        result = command_switch_case(action, filename, content, newname)
         print(result)
 
     else:
