@@ -1,15 +1,15 @@
-import os # IMPORTS
+import os # imports
 import shutil
 import time
 
-ORANGE = "" # COLOURS
+ORANGE = "" # colours
 RED = "\033[91m"
 GREEN = "\033[92m"
 PURPLE = "\033[95m"
 RESET = "\033[0m"
 
-req_argument = ["create-file", "read-file", "write-file", "append-file", "rename-file", "copy-file", "delete-file", "size-file", "make-folder", "delete-folder", "rename-folder", "copy-folder", "size-folder"] # LIST OF COMMANDS THAT REQUIRE ADDITIONAL ARGUMENTS
-not_req_argument = ["list", "tree", "clear", "cat"] # LIST OF COMMANDS THAT DON'T REQUIRE ADDITIONAL ARGUEMENTS
+req_argument = ["create-file", "read-file", "write-file", "append-file", "rename-file", "copy-file", "delete-file", "size-file", "make-folder", "delete-folder", "rename-folder", "copy-folder", "size-folder"] # list of commands that require additional arguments
+not_req_argument = ["list", "tree", "clear", "cat"] # list of commands that don't require additional arguments
 
 cat_art = f"""      ██            ██                        
     ██░░██        ██░░██                      
@@ -28,25 +28,25 @@ cat_art = f"""      ██            ██
   ██▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▒██      
     ██▒▒░░▒▒▒▒░░▒▒░░░░░░▒▒░░▒▒▒▒░░▒▒██        
       ██░░████░░██████████░░████░░██          
-      ██▓▓░░  ▓▓██░░  ░░██▓▓  ░░▓▓██{RESET}""" # CAT PICTURE
+      ██▓▓░░  ▓▓██░░  ░░██▓▓  ░░▓▓██{RESET}""" # cat picture
 
-active_directory = os.getcwd() # GET ACTIVE DIRECTORY
+active_directory = os.getcwd() # get active directory
 
-def set_active_directory(directory): # USED IN slide-to TO MOVE DIRECTORY
+def set_active_directory(directory): # used in slide-to to move directory
     global active_directory
-    new_directory = os.path.join(active_directory, directory) # JOIN ACTIVE DIRECTORY TO THE NEW ONE
+    new_directory = os.path.join(active_directory, directory) # join active directory to the new one
     if os.path.isdir(new_directory):
-        active_directory = os.path.abspath(new_directory) # MAKES IT ABSOLUTELY SERIOUS
+        active_directory = os.path.abspath(new_directory) # makes it absolutely serious
         return f"{GREEN}Active directory set to: {active_directory}{RESET}"
     return f"{RED}The directory '{directory}' does not exist.{RESET}"
 
-def command_switch_case(action, filename=None, content=None, newname=None): # MAIN SWITCH CASE
+def command_switch_case(action, filename=None, content=None, newname=None): # main switch case with =None for when the argument isn't passed
     full_path = os.path.join(active_directory, filename) if filename else None
     new_full_path = os.path.join(active_directory, newname) if newname else None
 
     match action:
 
-        # FILE OPERATIONS
+        # file operations
         case "create-file":
             if not os.path.exists(full_path):
                 with open(full_path, "w") as f:
@@ -100,7 +100,7 @@ def command_switch_case(action, filename=None, content=None, newname=None): # MA
                 return f"{GREEN}File '{full_path}' size: {os.path.getsize(full_path)} bytes.{RESET}"
             return f"{RED}File '{full_path}' does not exist.{RESET}"
 
-        # DIRECTORY LISTING OPERATIONS
+        # directory listing operations
         case "list":
             try:
                 files = os.listdir(active_directory)
@@ -158,80 +158,48 @@ def command_switch_case(action, filename=None, content=None, newname=None): # MA
             else:
                 return f"{PURPLE}No files or directories found in '{active_directory}'.{RESET}"
 
-        # FOLDER OPERATIONS
+        # folder operations
         case "make-folder":
             folder_path = os.path.join(active_directory, filename)
             if not os.path.exists(folder_path):
                 os.makedirs(folder_path)
                 return f"{GREEN}The directory '{folder_path}' was created.{RESET}"
-            else:
-                return f"{RED}The directory '{folder_path}' already exists.{RESET}"
+            return f"{RED}The directory '{folder_path}' already exists.{RESET}"
 
         case "delete-folder":
             folder_path = os.path.join(active_directory, filename)
             if os.path.exists(folder_path):
                 shutil.rmtree(folder_path)
                 return f"{GREEN}The directory '{folder_path}' was deleted.{RESET}"
-            else:
-                return f"{RED}The directory '{folder_path}' does not exist.{RESET}"
+            return f"{RED}The directory '{folder_path}' does not exist.{RESET}"
 
         case "rename-folder":
             folder_path = os.path.join(active_directory, filename)
-            new_folder_path = os.path.join(active_directory, newname)
             if os.path.exists(folder_path):
-                os.rename(folder_path, new_folder_path)
-                return f"{GREEN}The directory '{filename}' was renamed to '{newname}'.{RESET}"
-            else:
-                return f"{RED} The directory '{folder_path}' does not exist.{RESET}"
+                os.rename(folder_path, new_full_path)
+                return f"{GREEN}The directory '{folder_path}' was renamed to '{new_full_path}'.{RESET}"
+            return f"{RED}The directory '{folder_path}' does not exist.{RESET}"
 
         case "copy-folder":
             folder_path = os.path.join(active_directory, filename)
-            new_folder_path = os.path.join(active_directory, newname)
             if os.path.exists(folder_path):
-                if not os.path.exists(new_folder_path):
-                    shutil.copytree(folder_path, new_folder_path)
-                    return f"{GREEN}The directory '{folder_path}' was copied to '{new_folder_path}'.{RESET}"
-                else:
-                    return f"{RED}The directory '{new_folder_path}' already exists.{RESET}"
-            else:
-                return f"{RED}The directory '{folder_path}' does not exist.{RESET}"
+                shutil.copytree(folder_path, new_full_path)
+                return f"{GREEN}The directory '{folder_path}' was copied to '{new_full_path}'.{RESET}"
+            return f"{RED}The directory '{folder_path}' does not exist.{RESET}"
 
         case "size-folder":
-            folder_path = os.path.join(active_directory, " ".join(args[1:]))
-            if not os.path.exists(folder_path):
-                return f"{RED}The directory '{folder_path}' does not exist.{RESET}"
+            folder_path = os.path.join(active_directory, filename)
+            if os.path.exists(folder_path):
+                total_size = 0
+                for dirpath, dirnames, filenames in os.walk(folder_path):
+                    for f in filenames:
+                        fp = os.path.join(dirpath, f)
+                        total_size += os.path.getsize(fp)
+                return f"{GREEN}The total size of the directory '{folder_path}' is {total_size} bytes.{RESET}"
+            return f"{RED}The directory '{folder_path}' does not exist.{RESET}"
 
-            total_size = 0
-            for dirpath, dirnames, filenames in os.walk(folder_path):
-                for filename in filenames:
-                    file_path = os.path.join(dirpath, filename)
-                    total_size += os.path.getsize(file_path)
-
-            folder_name = os.path.basename(folder_path)
-            return f"{GREEN}The total size of '{folder_name}' is {total_size} bytes.{RESET}"
-
-        # OTHER OPERATIONS
-        case "clear":
-            os.system("cls")
-            return f"Terminal cleared."
-
-        case "cat":
-            colors = [GREEN, RED, PURPLE]
-            color_index = 0
-
-            while True:
-                os.system('cls' if os.name == 'nt' else 'clear')
-                current_color = colors[color_index]
-                print(f"{current_color}{cat_art}{RESET}")
-                color_index = (color_index + 1) % len(colors)
-                time.sleep(0.5)
-
-            return ""
-
-
-        # DEFAULT OPERATION
         case _:
-            return f"{RED}Invalid action specified. Please try again.{RESET}"
+            return f"{RED}Invalid action '{action}'. Please choose a valid command.{RESET}"
 
 def command_help():
     help_text = """
