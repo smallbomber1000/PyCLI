@@ -14,18 +14,18 @@ not_req_argument = ["list", "tree", "clear", "cat"] # list of commands that don'
 cat_art = f"""      ██            ██                        
     ██░░██        ██░░██                      
     ██░░▒▒████████▒▒░░██                ████  
-  ██▒▒░░░░▒▒▒▒░░▒▒░░░░▒▒██            ██░░░░██
+  ██▒▒░░░▒▒▒▒░░▒▒░░░░▒▒██            ██░░░░██
   ██░░░░░░░░░░░░░░░░░░░░██            ██  ░░██
 ██▒▒░░░░░░░░░░░░░░░░░░░░▒▒████████      ██▒▒██
 ██░░  ██  ░░██░░  ██  ░░  ▒▒  ▒▒  ██    ██░░██
 ██░░░░░░░░██░░██░░░░░░░░░░▒▒░░▒▒░░░░██████▒▒██
-██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██░░██  
-██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██░░██  
-██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██    
-██▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██    
-██▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██    
-██▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▒██    
-  ██▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▒██      
+██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██░░██  
+██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██░░██  
+██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██    
+██▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██    
+██▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██    
+██▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▒██    
+  ██▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▒██      
     ██▒▒░░▒▒▒▒░░▒▒░░░░░░▒▒░░▒▒▒▒░░▒▒██        
       ██░░████░░██████████░░████░░██          
       ██▓▓░░  ▓▓██░░  ░░██▓▓  ░░▓▓██{RESET}""" # cat picture
@@ -40,7 +40,7 @@ def set_active_directory(directory): # used in slide-to to move directory
         return f"{GREEN}Active directory set to: {active_directory}{RESET}"
     return f"{RED}The directory '{directory}' does not exist.{RESET}"
 
-def command_switch_case(action, filename=None, content=None, newname=None): # main switch case with =None for when the argument isn't passed
+def command_switch_case(action, filename=None, content=None, newname=None): # main switch case witch =None for when the argument isn't passed
     full_path = os.path.join(active_directory, filename) if filename else None
     new_full_path = os.path.join(active_directory, newname) if newname else None
 
@@ -52,7 +52,7 @@ def command_switch_case(action, filename=None, content=None, newname=None): # ma
                 with open(full_path, "w") as f:
                     f.write(content or "")
                 return f"{GREEN}File '{full_path}' created.{RESET}"
-            return f"{RED}File '{full_path}' already exists.{RESET}"
+            return f"{RED }File '{full_path}' already exists.{RESET}"
 
         case "read-file":
             if os.path.exists(full_path):
@@ -156,7 +156,7 @@ def command_switch_case(action, filename=None, content=None, newname=None): # ma
             if directory_tree:
                 return f"{PURPLE}\n".join(directory_tree) + f"{RESET}"
             else:
-                return f"{PURPLE}No files or directories found in '{active_directory}'.{RESET}"
+                return f"{PURPLE}No files or directories found in '{active_directory}'.{ RESET}"
 
         # folder operations
         case "make-folder":
@@ -164,42 +164,73 @@ def command_switch_case(action, filename=None, content=None, newname=None): # ma
             if not os.path.exists(folder_path):
                 os.makedirs(folder_path)
                 return f"{GREEN}The directory '{folder_path}' was created.{RESET}"
-            return f"{RED}The directory '{folder_path}' already exists.{RESET}"
+            else:
+                return f"{RED}The directory '{folder_path}' already exists.{RESET}"
 
         case "delete-folder":
             folder_path = os.path.join(active_directory, filename)
             if os.path.exists(folder_path):
                 shutil.rmtree(folder_path)
                 return f"{GREEN}The directory '{folder_path}' was deleted.{RESET}"
-            return f"{RED}The directory '{folder_path}' does not exist.{RESET}"
+            else:
+                return f"{RED}The directory '{folder_path}' does not exist.{RESET}"
 
         case "rename-folder":
             folder_path = os.path.join(active_directory, filename)
+            new_folder_path = os.path.join(active_directory, newname)
             if os.path.exists(folder_path):
-                os.rename(folder_path, new_full_path)
-                return f"{GREEN}The directory '{folder_path}' was renamed to '{new_full_path}'.{RESET}"
-            return f"{RED}The directory '{folder_path}' does not exist.{RESET}"
+                os.rename(folder_path, new_folder_path)
+                return f"{GREEN}The directory '{filename}' was renamed to '{newname}'.{RESET}"
+            else:
+                return f"{RED} The directory '{folder_path}' does not exist.{RESET}"
 
         case "copy-folder":
             folder_path = os.path.join(active_directory, filename)
+            new_folder_path = os.path.join(active_directory, newname)
             if os.path.exists(folder_path):
-                shutil.copytree(folder_path, new_full_path)
-                return f"{GREEN}The directory '{folder_path}' was copied to '{new_full_path}'.{RESET}"
-            return f"{RED}The directory '{folder_path}' does not exist.{RESET}"
+                if not os.path.exists(new_folder_path):
+                    shutil.copytree(folder_path, new_folder_path)
+                    return f"{GREEN}The directory '{folder_path}' was copied to '{new_folder_path}'.{RESET}"
+                else:
+                    return f"{RED}The directory '{new_folder_path}' already exists.{RESET}"
+            else:
+                return f"{RED}The directory '{folder_path}' does not exist.{RESET}"
 
         case "size-folder":
-            folder_path = os.path.join(active_directory, filename)
-            if os.path.exists(folder_path):
-                total_size = 0
-                for dirpath, dirnames, filenames in os.walk(folder_path):
-                    for f in filenames:
-                        fp = os.path.join(dirpath, f)
-                        total_size += os.path.getsize(fp)
-                return f"{GREEN}The total size of the directory '{folder_path}' is {total_size} bytes.{RESET}"
-            return f"{RED}The directory '{folder_path}' does not exist.{RESET}"
+            folder_path = os.path.join(active_directory, " ".join(args[1:]))
+            if not os.path.exists(folder_path):
+                return f"{RED}The directory '{folder_path}' does not exist.{RESET}"
 
+            total_size = 0
+            for dirpath, dirnames, filenames in os.walk(folder_path):
+                for filename in filenames:
+                    file_path = os.path.join(dirpath, filename)
+                    total_size += os.path.getsize(file_path)
+
+            folder_name = os.path.basename(folder_path)
+            return f"{GREEN}The total size of '{folder_name}' is {total_size} bytes.{RESET}"
+
+        # other operations
+        case "clear":
+            os.system("cls")
+            return f"Terminal cleared."
+
+        case "cat":
+            colors = [GREEN, RED, PURPLE]
+            color_index = 0
+
+            while True:
+                os.system('cls' if os.name == 'nt' else 'clear')
+                current_color = colors[color_index]
+                print(f"{current_color}{cat_art}{RESET}")
+                color_index = (color_index + 1) % len(colors)
+                time.sleep(0.5)
+
+            return ""
+
+        # default operation
         case _:
-            return f"{RED}Invalid action '{action}'. Please choose a valid command.{RESET}"
+            return f"{RED}Invalid action specified. Please try again.{RESET}"
 
 def command_help():
     help_text = """
@@ -235,7 +266,7 @@ Miscellaneous:
 while True:
     action = input(f"Please enter a command or type 'help' for a list of commands. {active_directory}> ").strip()
 
-    if action.lower() == "exit":
+    if action .lower() == "exit":
         print("Exiting...")
         break
 
