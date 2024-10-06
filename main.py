@@ -9,7 +9,7 @@ PURPLE = "\033[95m"
 YELLOW = "\033[93m"
 RESET = "\033[0m"
 
-req_argument = ["create-file", "read-file", "write-file", "append-file", "rename-file", "copy-file", "delete-file", "size-file", "make-folder", "delete-folder", "rename-folder", "copy-folder", "size-folder", "calculate", "calc"] # list of commands that require additional arguments
+req_argument = ["create-file", "read-file", "write-file", "append-file", "rename-file", "copy-file", "delete-file", "size-file", "make-folder", "delete-folder", "rename-folder", "copy-folder", "size-folder"] # list of commands that require additional arguments
 not_req_argument = ["list", "tree", "clear", "cat", "process-list"] # list of commands that don't require additional arguments
 
 cat_art = f"""      ██            ██                        
@@ -34,6 +34,9 @@ cat_art = f"""      ██            ██
 active_directory = os.getcwd() # get active directory
 
 def set_active_directory(directory): # used in slide-to to move directory
+    """
+    Will set the active directory and is used in >>>slide-to
+    """
     global active_directory
     new_directory = os.path.join(active_directory, directory) # join active directory to the new one
     if os.path.isdir(new_directory):
@@ -41,7 +44,26 @@ def set_active_directory(directory): # used in slide-to to move directory
         return f"{GREEN}Active directory set to: {active_directory}{RESET}"
     return f"{RED}The directory '{directory}' does not exist.{RESET}"
 
-def command_switch_case(action, item_name=None, data=None, new_item_name=None): # main switch case with =None for when the argument isn't passed
+def command_switch_case(action, item_name=None, data=None, new_item_name=None):
+    """
+        ## Main Switch Case for Commands
+
+        Checks the action and matches it to the appropriate case.
+
+        ### Parameters
+        - **action** : `str`  
+        The argument that determines which switch case will be used. (Required)
+        - **item_name** : `str`, optional  
+        The name of the file. Used in operations that require a name, e.g., "create-file".
+        - **data** : `str`, optional  
+        The data to be written to the file. Used in operations that require data, e.g., "append-file".
+        - **new_item_name** : `str`, optional  
+        The new name of the item. Used in operations that require a new name, e.g., "rename-file".
+
+        ### Notes
+        The only required parameter is `action`. The other parameters can be ignored unless running a command that requires them.
+    """
+
     full_path = os.path.join(active_directory, item_name) if item_name else None # defines the full_path to avoid permission errors
     new_full_path = os.path.join(active_directory, new_item_name) if new_item_name else None # converts the new_item_name that is passed to a full path to the file
 
@@ -229,13 +251,6 @@ def command_switch_case(action, item_name=None, data=None, new_item_name=None): 
 
             return ""
         
-        case "calculate" | "calc":
-            try:
-                answer = eval(item_name) # do whatever sum was passed through
-                return f"{GREEN}{answer}{RESET}"
-            except:
-                return f"{RED}Invalid input.{RESET}" # return this if the sum was invalid
-        
         case "process-list":
             processes = os.popen('tasklist').readlines() # get a list of all the processes
             process_list = [proc.strip() for proc in processes] # add them to a list
@@ -281,8 +296,6 @@ Miscellaneous:
 2. help - Displays this help message.
 3. cat - Displays a cat.
 4. info - Displays info about this program.
-5. calculate <equation> or calc <equation> - Displays the result of the equation.
-6. pc-info
 \033[0m""" # list of all the commands
     print(help_text) # prints the list out
 
