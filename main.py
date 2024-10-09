@@ -9,7 +9,7 @@ PURPLE = "\033[95m"
 YELLOW = "\033[93m"
 RESET = "\033[0m"
 
-req_argument = ["create-file", "read-file", "write-file", "append-file", "rename-file", "copy-file", "delete-file", "size-file", "make-folder", "delete-folder", "rename-folder", "copy-folder", "size-folder"] # list of commands that require additional arguments
+req_argument = ["create-file", "read-file", "write-file", "append-file", "rename-file", "copy-file", "delete-file", "size-file", "make-folder", "delete-folder", "rename-folder", "copy-folder", "size-folder", "calculate", "calc"] # list of commands that require additional arguments
 not_req_argument = ["list", "tree", "clear", "cat", "process-list"] # list of commands that don't require additional arguments
 
 cat_art = f"""      ██            ██                        
@@ -250,6 +250,9 @@ def command_switch_case(action, item_name=None, data=None, new_item_name=None):
                 time.sleep(0.5)
 
             return ""
+
+        case "calculate" | "calc":
+            return eval(item_name)
         
         case "process-list":
             processes = os.popen('tasklist').readlines() # get a list of all the processes
